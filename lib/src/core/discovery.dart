@@ -138,7 +138,13 @@ class Discovery {
     }
     _searchRetries.clear();
     // Prefer targeted routes before limited broadcast (which some hosts reject).
-    final hosts = {...knownHosts, ...broadcastAddresses, '255.255.255.255'};
+    final hosts = {
+      ...knownHosts,
+      ...broadcastAddresses,
+      // Unroutable limited broadcasts cause asynchronous socket errors on some
+      // systems. Once real interface broadcasts are known, use those routes.
+      if (broadcastAddresses.isEmpty) '255.255.255.255',
+    };
     void sendQuery() {
       for (final host in hosts) {
         try {

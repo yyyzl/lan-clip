@@ -54,6 +54,8 @@ class ClipController extends ChangeNotifier {
       await store.load();
       if (isSender) {
         try {
+          discovery.broadcastAddresses =
+              await NativeBridge.broadcastAddresses();
           await discovery.browse();
           discovery.onChanged = changed;
           discovery.search(knownHosts: peers.map((p) => p.host).toList());
