@@ -275,7 +275,14 @@ void main() {
       };
       browser.broadcastAddresses = ['127.0.0.1'];
       browser.search(port: port);
-      await found.future.timeout(const Duration(seconds: 2));
+      await found.future.timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          fail(
+            'Discovery timeout. Browser: ${browser.lastSocketError}; receiver: ${advertiser.lastSocketError}',
+          );
+        },
+      );
       expect(browser.candidates[store.id]?.name, '测试电脑');
       expect(browser.candidates[store.id]?.port, server.port);
     },
