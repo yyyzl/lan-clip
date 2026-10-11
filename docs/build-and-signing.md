@@ -19,7 +19,7 @@ Actions 页面选择 **Build Lan Clip → Run workflow**，三端产物在该次
 
 ## macOS / Windows
 
-Mac 构建检查 arm64 与 x86_64 两种架构，对完整应用进行本地签名验证后打包。Windows 分发完整 Flutter Release 目录。
+Mac 构建检查 arm64 与 x86_64 两种架构，对完整应用进行本地签名验证后打包。Windows 分发完整 Flutter Release 目录，并从 Visual Studio 官方 Redistributable 目录复制 x64 Visual C++ 运行库，避免要求用户先安装开发环境。
 
 目前未配置 Apple Developer ID、公证或 Windows 发布者代码签名证书。Android 的 APK 签名与这两种桌面发布者签名是不同机制。
 

@@ -69,9 +69,7 @@ jobs:
       - name: Package Windows
         if: matrix.target == 'windows'
         shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force dist | Out-Null
-          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath dist/Lan-Clip-Windows-x64.zip
+        run: ./tool/package-windows.ps1
       - name: Build macOS
         if: matrix.target == 'macos'
         run: flutter build macos --release
@@ -79,7 +77,7 @@ jobs:
         if: matrix.target == 'macos'
         run: |
           APP='build/macos/Build/Products/Release/Lan Clip.app'
-          lipo -verify_arch arm64 x86_64 "$APP/Contents/MacOS/Lan Clip"
+          lipo "$APP/Contents/MacOS/Lan Clip" -verify_arch arm64 x86_64
           codesign --force --deep --sign - "$APP"
           codesign --verify --deep --strict "$APP"
           mkdir -p dist
