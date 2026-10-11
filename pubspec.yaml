@@ -1,0 +1,26 @@
+name: lan_clip
+description: 轻贴 — 同一 Wi-Fi 下，从安卓发送文字和图片到电脑剪贴板。
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.9.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  basic_utils: ^5.8.2
+  crypto: ^3.0.6
+  image_picker: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/brand/icon.png

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <title>轻贴 — 两张纸与向右发送箭头</title>
+  <rect x="56" y="56" width="912" height="912" rx="210" fill="#256D53"/>
+  <rect x="234" y="202" width="376" height="462" rx="62" fill="#A7C6B5"/>
+  <rect x="400" y="342" width="390" height="480" rx="62" fill="#F6F7F3"/>
+  <path d="M490 582H701M633 514L701 582L633 650" fill="none" stroke="#256D53" stroke-width="42" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

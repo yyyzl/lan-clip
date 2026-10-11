@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+PROJECT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+if [ -f "$PROJECT_DIR/.local.env" ]; then
+  set -a
+  . "$PROJECT_DIR/.local.env"
+  set +a
+fi
+exec "${FLUTTER_BIN:-flutter}" "$@"
