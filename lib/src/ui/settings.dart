@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../controller.dart';
 import '../core/models.dart';
-import '../platform/native_bridge.dart';
 import 'theme.dart';
 
 String userError(Object error) =>
@@ -509,8 +508,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
           ),
         ),
         actions: [
-          if (!c.isSender)
-            TextButton(onPressed: NativeBridge.quit, child: const Text('退出轻贴')),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('完成'),
