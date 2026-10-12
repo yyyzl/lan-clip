@@ -19,7 +19,7 @@ Actions 页面选择 **Build Lan Clip → Run workflow**，三端产物在该次
 
 ## macOS / Windows
 
-Mac 构建检查 arm64 与 x86_64 两种架构，对完整应用进行本地签名验证后打包。Windows 分发完整 Flutter Release 目录，并从 Visual Studio 官方 Redistributable 目录复制 x64 Visual C++ 运行库，避免要求用户先安装开发环境。
+Mac 构建检查 arm64 与 x86_64 两种架构，对完整应用进行本地签名验证后打包。Windows 分发完整 Flutter Release 目录，并从 Visual Studio 官方 Redistributable 目录复制 x64 Visual C++ 运行库，避免要求用户先安装开发环境。使用运行器附带的 Inno Setup 6 构建中文/英文安装向导，按当前用户安装；流水线会实际验证安装、快捷方式、原生接收进程启动、覆盖升级保留配对，以及卸载保留用户数据。Windows 便携 ZIP 同时保留。
 
 目前未配置 Apple Developer ID、公证或 Windows 发布者代码签名证书。Android 的 APK 签名与这两种桌面发布者签名是不同机制。
 

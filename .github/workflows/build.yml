@@ -70,6 +70,10 @@ jobs:
         if: matrix.target == 'windows'
         shell: pwsh
         run: ./tool/package-windows.ps1
+      - name: Verify Windows install, upgrade and uninstall
+        if: matrix.target == 'windows'
+        shell: pwsh
+        run: ./tool/test-windows-installer.ps1
       - name: Build macOS
         if: matrix.target == 'macos'
         run: flutter build macos --release
@@ -112,5 +116,5 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           cd dist
-          sha256sum *.apk *.zip > SHA256SUMS.txt
+          sha256sum *.apk *.zip *.exe > SHA256SUMS.txt
           gh release create "$RELEASE_TAG" ./* --repo "$GITHUB_REPOSITORY" --title "轻贴 $RELEASE_TAG" --notes-file ../docs/release-notes.md --verify-tag

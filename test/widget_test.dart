@@ -217,7 +217,8 @@ void main() {
   );
 
   testWidgets('capture Android homepage and blank editor', (tester) async {
-    await render(tester);
+    controller.peers.last.online = false;
+    await render(tester, size: const Size(390, 780));
     await expectLater(
       find.byType(MaterialApp),
       matchesGoldenFile('../work/verification/android-home.png'),
@@ -230,8 +231,109 @@ void main() {
     );
   }, skip: !const bool.fromEnvironment('CAPTURE_UI'));
 
+  testWidgets(
+    'first-run phone guides pairing instead of offering disabled send actions',
+    (tester) async {
+      controller.store.peers.clear();
+      await render(tester);
+      expect(find.text('先连接一台电脑'), findsOneWidget);
+      expect(find.text('发送文字'), findsNothing);
+      await tester.tap(find.text('添加电脑'));
+      await tester.pumpAndSettle();
+      expect(find.text('正在查找电脑…'), findsOneWidget);
+      expect(find.text('电脑 IP'), findsNothing);
+      await tester.tap(find.text('取消'));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 2));
+    },
+  );
+
+  testWidgets(
+    'desktop pairing finishes into persistent phone status, including after receipt and disconnect',
+    (tester) async {
+      final store = controller.store;
+      controller.dispose();
+      controller = PreviewController(sender: false, store: store)..ready = true;
+      await render(tester, size: const Size(760, 540));
+      expect(find.text('连接你的手机'), findsOneWidget);
+      expect(find.text('在线'), findsNothing);
+      await tester.tap(find.text('开始配对'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsOneWidget);
+      final phone = TrustedPhone(id: 'phone', name: '我的手机', token: 'test-token')
+        ..lastSeen = DateTime.now();
+      store.phones.add(phone);
+      controller.changed();
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('开始配对'), findsNothing);
+      expect(find.text('我的手机'), findsOneWidget);
+      expect(find.text('在线'), findsOneWidget);
+      controller.latest = ReceivedClip(
+        ClipPayload.text('状态区域不会被收到的内容替代'),
+        '我的手机',
+      );
+      controller.changed();
+      await tester.pumpAndSettle();
+      expect(find.text('已配对手机'), findsOneWidget);
+      expect(find.text('状态区域不会被收到的内容替代'), findsOneWidget);
+      phone.lastSeen = DateTime.now().subtract(const Duration(seconds: 16));
+      controller.changed();
+      await tester.pumpAndSettle();
+      expect(find.text('离线'), findsOneWidget);
+      expect(find.text('在线'), findsNothing);
+      expect(find.text('我的手机'), findsOneWidget);
+      expect(find.text('连接你的手机'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'desktop small window accommodates long device names and large text',
+    (tester) async {
+      final store = controller.store;
+      store.phones.add(
+        TrustedPhone(
+          id: 'phone',
+          name: '这是一个非常长的安卓设备名称用于检查小窗口显示',
+          token: 'test',
+        ),
+      );
+      controller.dispose();
+      controller = PreviewController(sender: false, store: store)..ready = true;
+      tester.platformDispatcher.textScaleFactorTestValue = 1.5;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await render(tester, size: const Size(500, 360));
+      expect(tester.takeException(), isNull);
+      expect(find.text('已配对手机'), findsOneWidget);
+    },
+  );
+
+  testWidgets('capture first-run phone and desktop', (tester) async {
+    controller.store.peers.clear();
+    await render(tester, size: const Size(390, 780));
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('../work/verification/android-first-run.png'),
+    );
+    final store = controller.store;
+    store.name = '我的 Mac';
+    controller.dispose();
+    controller = PreviewController(sender: false, store: store)..ready = true;
+    await render(tester, size: const Size(760, 540));
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('../work/verification/desktop-first-run.png'),
+    );
+  }, skip: !const bool.fromEnvironment('CAPTURE_UI'));
+
   testWidgets('capture desktop text and image previews', (tester) async {
     final store = controller.store;
+    store.name = '我的 Mac';
+    store.phones.add(
+      TrustedPhone(id: 'phone', name: '我的手机', token: 'test')
+        ..lastSeen = DateTime.now(),
+    );
     controller.dispose();
     controller = PreviewController(sender: false, store: store)
       ..ready = true
@@ -239,11 +341,20 @@ void main() {
         ClipPayload.text('会议地点改到二楼，记得带上电脑。'),
         'Android 手机',
       );
-    await render(tester, size: const Size(760, 420));
+    await render(tester, size: const Size(760, 540));
     expect(tester.takeException(), isNull);
     await expectLater(
       find.byType(MaterialApp),
       matchesGoldenFile('../work/verification/desktop-text.png'),
+    );
+    store.phones.single.lastSeen = DateTime.now().subtract(
+      const Duration(seconds: 16),
+    );
+    controller.changed();
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(MaterialApp),
+      matchesGoldenFile('../work/verification/desktop-offline.png'),
     );
     controller.latest = ReceivedClip(ClipPayload.image(tinyPng), 'Android 手机');
     controller.changed();

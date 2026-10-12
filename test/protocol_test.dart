@@ -92,6 +92,31 @@ void main() {
     expect(peer.name, '书房 Mac');
   });
 
+  test(
+    'phone presence expires, renews only with authentication, and is not persisted',
+    () async {
+      final peer = await pair();
+      final phone = store.phones.single;
+      final seen = phone.lastSeen!;
+      expect(phone.isOnlineAt(seen.add(const Duration(seconds: 14))), true);
+      expect(phone.isOnlineAt(seen.add(phonePresenceTimeout)), false);
+      phone.lastSeen = DateTime.now().subtract(const Duration(seconds: 30));
+      expect(phone.online, false);
+      final stale = phone.lastSeen;
+      await expectLater(
+        api.ping(peer, 'forged-phone'),
+        throwsA(isA<ClipException>()),
+      );
+      expect(phone.lastSeen, stale);
+      await api.ping(peer, 'phone-1');
+      expect(phone.online, true);
+      final reloaded = AppStore(temp);
+      await reloaded.load();
+      expect(reloaded.phones.single.online, false);
+      expect(reloaded.phones.single.token, phone.token);
+    },
+  );
+
   test('image payload arrives as PNG bytes, not a path or URL', () async {
     final peer = await pair();
     final result = await api.send(peer, 'phone-1', ClipPayload.image(tinyPng));

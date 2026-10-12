@@ -18,13 +18,14 @@ xcrun swiftc -D LAN_CLIP_STANDALONE -target "$arch_name-apple-macos12.0" \
   macos/Runner/MainFlutterWindow.swift macos/Runner/AppDelegate.swift tool/StandaloneMain.swift \
   -o "$bundle/Contents/MacOS/LanClip"
 python3 - "$bundle" <<'PY'
-import plistlib, sys
+import plistlib, sys, re
 from pathlib import Path
 bundle = Path(sys.argv[1])
+version, build = re.search(r'^version: ([0-9.]+)\+(\d+)', Path('pubspec.yaml').read_text(), re.M).groups()
 info = {
     'CFBundleExecutable': 'LanClip', 'CFBundleIdentifier': 'dev.lanclip.lanClip',
     'CFBundleName': '轻贴', 'CFBundleDisplayName': '轻贴', 'CFBundlePackageType': 'APPL',
-    'CFBundleShortVersionString': '0.1.0', 'CFBundleVersion': '1',
+    'CFBundleShortVersionString': version, 'CFBundleVersion': build,
     'LSMinimumSystemVersion': '12.0', 'NSPrincipalClass': 'NSApplication',
     'NSHighResolutionCapable': True,
     'NSLocalNetworkUsageDescription': '接收同一 Wi-Fi 下手机发送的文字和图片。',

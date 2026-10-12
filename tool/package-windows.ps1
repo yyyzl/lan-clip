@@ -23,3 +23,14 @@ $parent = Split-Path -Parent $Destination
 if ($parent) { New-Item -ItemType Directory -Force $parent | Out-Null }
 Compress-Archive -Path (Join-Path $ReleaseDirectory '*') -DestinationPath $Destination -Force
 Write-Output "Packaged Windows x64 app and $($runtime.Count) Visual C++ runtime DLLs: $Destination"
+
+$compiler = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6/ISCC.exe'
+if (!(Test-Path $compiler)) { throw 'Install Inno Setup 6 to generate the Windows installer.' }
+$versionLine = Get-Content 'pubspec.yaml' | Where-Object { $_ -match '^version:' }
+if ($versionLine -notmatch '^version:\s*(\d+\.\d+\.\d+)\+') { throw 'Invalid application version.' }
+$appVersion = $Matches[1]
+$outputDirectory = (Resolve-Path $(if ($parent) { $parent } else { '.' })).Path
+$releasePath = (Resolve-Path $ReleaseDirectory).Path
+& $compiler "/DAppVersion=$appVersion" "/DReleaseDir=$releasePath" "/DOutputDir=$outputDirectory" 'windows/installer/lan-clip.iss'
+if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed with exit code $LASTEXITCODE" }
+if (!(Test-Path (Join-Path $outputDirectory 'Lan-Clip-Windows-x64-Setup.exe'))) { throw 'Installer output was not created.' }

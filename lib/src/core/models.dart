@@ -8,6 +8,7 @@ const receiverPort = 45877;
 const maxTextBytes = 1024 * 1024;
 const maxImageBytes = 20 * 1024 * 1024;
 const maxWireBytes = maxImageBytes * 4 ~/ 3 + 8192;
+const phonePresenceTimeout = Duration(seconds: 15);
 
 String randomId([int length = 24]) {
   final random = Random.secure();
@@ -67,6 +68,14 @@ class TrustedPhone {
   final String name;
   final String token;
   DateTime? lastSeen;
+  bool isOnlineAt(DateTime now) {
+    final seen = lastSeen;
+    if (seen == null) return false;
+    final age = now.difference(seen);
+    return !age.isNegative && age < phonePresenceTimeout;
+  }
+
+  bool get online => isOnlineAt(DateTime.now());
   Map<String, dynamic> toJson() => {'id': id, 'name': name, 'token': token};
   factory TrustedPhone.fromJson(Map<String, dynamic> j) => TrustedPhone(
     id: j['id'] as String,

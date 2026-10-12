@@ -64,6 +64,9 @@ class Receiver {
     InternetAddress? address,
     int port = receiverPort,
   }) async {
+    for (final phone in store.phones) {
+      phone.lastSeen = null;
+    }
     _server = await HttpServer.bindSecure(
       address ?? InternetAddress.anyIPv4,
       port,
@@ -105,8 +108,8 @@ class Receiver {
         await _reply(request, 401, {'error': '配对已失效，请重新添加电脑'});
         return;
       }
-      phone.lastSeen = DateTime.now();
       if (request.uri.path == '/v1/ping' && request.method == 'GET') {
+        _markPresent(phone);
         await _reply(request, 200, {'id': store.id, 'name': store.name});
         return;
       }
@@ -121,6 +124,7 @@ class Receiver {
       final payload = ClipPayload.fromJson(
         await readJson(request, maxWireBytes),
       );
+      _markPresent(phone);
       final receipt = '${phone.id}:${payload.id}';
       // Repeated requests wait for the same native write. Never acknowledge first.
       if (!_receipts.containsKey(receipt)) {
@@ -191,6 +195,7 @@ class Receiver {
       store.phones = oldPhones;
       rethrow;
     }
+    phone.lastSeen = DateTime.now();
     onChanged?.call();
     await _reply(request, 200, {
       'id': store.id,
@@ -199,6 +204,12 @@ class Receiver {
       'fingerprint': identity.fingerprint,
       'token': phone.token,
     });
+  }
+
+  void _markPresent(TrustedPhone phone) {
+    final wasOnline = phone.online;
+    phone.lastSeen = DateTime.now();
+    if (!wasOnline) onChanged?.call();
   }
 
   static bool _equal(String a, String b) {

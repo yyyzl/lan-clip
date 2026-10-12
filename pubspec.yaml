@@ -1,7 +1,7 @@
 name: lan_clip
 description: 轻贴 — 同一 Wi-Fi 下，从安卓发送文字和图片到电脑剪贴板。
 publish_to: none
-version: 0.1.0+1
+version: 0.2.0+2
 
 environment:
   sdk: '>=3.9.0 <4.0.0'

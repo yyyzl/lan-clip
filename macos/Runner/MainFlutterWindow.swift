@@ -12,7 +12,7 @@ class MainFlutterWindow: NSWindow, NSWindowDelegate {
   func configureFlutter() {
     let controller = FlutterViewController()
     contentViewController = controller
-    setContentSize(NSSize(width: 760, height: 500))
+    setContentSize(NSSize(width: 760, height: 540))
     minSize = NSSize(width: 500, height: 360)
     center()
     title = "轻贴"

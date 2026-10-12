@@ -21,6 +21,7 @@ class ClipController extends ChangeNotifier {
   final discovery = Discovery();
   Receiver? receiver;
   Timer? _timer;
+  Timer? _presenceTimer;
   bool _disposed = false;
   bool _refreshing = false;
   bool ready = false;
@@ -94,6 +95,15 @@ class ClipController extends ChangeNotifier {
         _timer = Timer.periodic(const Duration(seconds: 5), (_) async {
           addresses = await _localAddresses();
           changed();
+        });
+        // Expire silent phones even when no further request arrives.
+        var presence = {for (final p in phones) p.id: p.online};
+        _presenceTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+          final current = {for (final p in phones) p.id: p.online};
+          if (!mapEquals(presence, current)) {
+            presence = current;
+            changed();
+          }
         });
       }
       ready = true;
@@ -266,6 +276,7 @@ class ClipController extends ChangeNotifier {
 
   Future<void> restart() async {
     _timer?.cancel();
+    _presenceTimer?.cancel();
     discovery.close();
     await receiver?.stop();
     error = null;
@@ -279,6 +290,7 @@ class ClipController extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     _timer?.cancel();
+    _presenceTimer?.cancel();
     discovery.close();
     unawaited(receiver?.stop() ?? Future.value());
     super.dispose();

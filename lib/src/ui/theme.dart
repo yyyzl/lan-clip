@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-const canvasColor = Color(0xFFF6F7F3);
-const inkColor = Color(0xFF20312A);
+const canvasColor = Color(0xFFF7F8F5);
+const inkColor = Color(0xFF24342E);
 const secondaryColor = Color(0xFF627168);
-const accentColor = Color(0xFF256D53);
-const sageColor = Color(0xFFE7F0E9);
+const accentColor = Color(0xFF3D6B57);
+const sageColor = Color(0xFFE9F0EA);
 const lineColor = Color(0xFFDCE4DD);
 
 final appTheme = ThemeData(
@@ -51,7 +51,7 @@ final appTheme = ThemeData(
   ),
   filledButtonTheme: FilledButtonThemeData(
     style: FilledButton.styleFrom(
-      minimumSize: const Size(48, 56),
+      minimumSize: const Size(48, 48),
       iconSize: 24,
       textStyle: const TextStyle(
         fontFamily: 'Roboto',

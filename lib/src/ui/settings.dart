@@ -105,7 +105,7 @@ class _AddComputerDialogState extends State<AddComputerDialog> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('在电脑的设置里点「添加手机」，然后输入配对码。'),
+                const Text('在电脑上点「开始配对」或「添加手机」，然后输入完整配对码。'),
                 const SizedBox(height: 16),
                 if (!_manual) ...[
                   if (widget.controller.candidates.isEmpty)
@@ -214,12 +214,27 @@ class PairingDialog extends StatefulWidget {
 class _PairingDialogState extends State<PairingDialog> {
   Timer? _timer;
   Set<String> _initialTokens = {};
+  bool _closing = false;
+
+  void _finishWhenPaired() {
+    if (_closing || !mounted) return;
+    if (widget.controller.phones.any(
+      (p) => p.online && !_initialTokens.contains(p.token),
+    )) {
+      _closing = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.pop(context);
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _initialTokens = widget.controller.phones.map((p) => p.token).toSet();
+    widget.controller.addListener(_finishWhenPaired);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) widget.controller.openPairing();
+      if (mounted && !_closing) widget.controller.openPairing();
     });
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
@@ -229,6 +244,7 @@ class _PairingDialogState extends State<PairingDialog> {
   @override
   void dispose() {
     _timer?.cancel();
+    widget.controller.removeListener(_finishWhenPaired);
     // Avoid notifying another dialog during its parent's build/dispose phase.
     scheduleMicrotask(widget.controller.closePairing);
     super.dispose();
@@ -253,7 +269,7 @@ class _PairingDialogState extends State<PairingDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (code != null) ...[
-                  const Text('在手机上点「添加」，选择这台电脑。'),
+                  const Text('在手机上点「添加电脑」，选择这台电脑。'),
                   const SizedBox(height: 20),
                   Text(
                     c.deviceName,
@@ -274,9 +290,23 @@ class _PairingDialogState extends State<PairingDialog> {
                     style: const TextStyle(color: secondaryColor),
                   ),
                   const SizedBox(height: 20),
-                  const Text('电脑 IP', style: TextStyle(color: secondaryColor)),
-                  SelectableText(
-                    c.addresses.isEmpty ? '尚未连接网络' : c.addresses.join('\n'),
+                  ExpansionTile(
+                    tilePadding: EdgeInsets.zero,
+                    title: const Text('找不到电脑？', style: TextStyle(fontSize: 14)),
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: SelectableText(
+                          c.addresses.isEmpty
+                              ? '尚未连接网络'
+                              : '使用 IP 添加：${c.addresses.join(' / ')}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: secondaryColor,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ] else ...[
                   Text(paired ? '手机已添加' : '配对码已失效'),
@@ -434,6 +464,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     (p) => ListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(p.name),
+                      subtitle: OnlineStatus(c.online && p.online),
                       trailing: IconButton(
                         tooltip: '移除 ${p.name}',
                         onPressed: () => _remove(p.id, p.name),
