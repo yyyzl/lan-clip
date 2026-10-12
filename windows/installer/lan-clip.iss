@@ -34,7 +34,8 @@ Name: "chinesesimp"; MessagesFile: "ChineseSimplified.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Messages]
-chinesesimp.AppRunningError=轻贴仍在后台运行。%n%n请从右下角托盘菜单选择「退出轻贴」，然后继续。
+chinesesimp.SetupAppRunningError=轻贴仍在后台运行。%n%n请从右下角托盘菜单选择「退出轻贴」，然后继续安装。
+chinesesimp.UninstallAppRunningError=轻贴仍在后台运行。%n%n请从右下角托盘菜单选择「退出轻贴」，然后继续卸载。
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
