@@ -1,0 +1,5 @@
+ChineseSimplified.isl is the Inno Setup 6.5.0+ Simplified Chinese message file.
+Source: https://github.com/jrsoftware/issrc/blob/main/Files/Languages/ChineseSimplified.isl
+Pinned upstream Git blob: d0d44258f51aa3127fc0d1167a7c8be328a9bdcf
+The original maintainer attribution is retained in the file.
+Vendored so local builds and GitHub runners do not depend on optional installed languages.
