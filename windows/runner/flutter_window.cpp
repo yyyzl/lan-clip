@@ -71,7 +71,7 @@ void FlutterWindow::OnDestroy() {
 }
 LRESULT FlutterWindow::MessageHandler(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) noexcept {
   if (message == kTaskbarCreated) { AddTray(); return 0; }
-  if (message == WM_CLOSE && !quitting_) { ShowWindow(hwnd, tray_available_ ? SW_HIDE : SW_MINIMIZE); return 0; }
+  if (message == WM_CLOSE && !quitting_ && tray_available_) { ShowWindow(hwnd, SW_HIDE); return 0; }
   if (message == kTrayMessage) {
     if (lparam == WM_LBUTTONUP || lparam == WM_LBUTTONDBLCLK) Restore();
     if (lparam == WM_RBUTTONUP) {

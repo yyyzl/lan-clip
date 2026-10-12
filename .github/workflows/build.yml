@@ -1,13 +1,15 @@
 name: Build Lan Clip
 on:
+  pull_request:
+    branches: [main]
   workflow_dispatch:
   push:
     tags: ['v*']
 permissions:
   contents: read
 concurrency:
-  group: build-${{ github.ref }}
-  cancel-in-progress: false
+  group: build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   build:
     name: ${{ matrix.target }}
@@ -38,7 +40,7 @@ jobs:
       - run: flutter analyze
       - run: flutter test
       - name: Restore Android signing key
-        if: matrix.target == 'android'
+        if: matrix.target == 'android' && github.event_name != 'pull_request'
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         shell: bash
@@ -47,13 +49,16 @@ jobs:
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/lan-clip.jks"
           chmod 600 "$RUNNER_TEMP/lan-clip.jks"
       - name: Build signed Android APKs
-        if: matrix.target == 'android'
+        if: matrix.target == 'android' && github.event_name != 'pull_request'
         env:
           REQUIRE_RELEASE_SIGNING: 'true'
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/lan-clip.jks
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: flutter build apk --release --split-per-abi
+      - name: Validate Android release build (development signing)
+        if: matrix.target == 'android' && github.event_name == 'pull_request'
         run: flutter build apk --release --split-per-abi
       - name: Package Android
         if: matrix.target == 'android'
@@ -87,13 +92,14 @@ jobs:
           mkdir -p dist
           ditto -c -k --keepParent "$APP" dist/Lan-Clip-Mac-universal.zip
       - uses: actions/upload-artifact@v4
+        if: github.event_name != 'pull_request'
         with:
           name: Lan-Clip-${{ matrix.target }}
           path: dist/*
           if-no-files-found: error
           retention-days: 30
       - name: Remove Android signing key
-        if: always() && matrix.target == 'android'
+        if: always() && matrix.target == 'android' && github.event_name != 'pull_request'
         shell: bash
         run: rm -f "$RUNNER_TEMP/lan-clip.jks"
   release:
